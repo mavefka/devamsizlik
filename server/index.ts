@@ -69,6 +69,6 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
   res.status(err.status || 500).json({ error: err.message || 'Sunucu hatası oluştu.' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Sunucu http://localhost:${PORT} adresinde çalışıyor`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Sunucu 0.0.0.0:${PORT} adresinde çalışıyor`);
 });

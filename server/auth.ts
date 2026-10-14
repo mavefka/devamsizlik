@@ -6,11 +6,8 @@ function getJwtSecret(): string {
   if (process.env.JWT_SECRET) {
     return process.env.JWT_SECRET;
   }
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('FATAL: JWT_SECRET ortam değişkeni ayarlanmamış! Üretim ortamında JWT_SECRET zorunludur.');
-  }
-  console.warn('⚠️ UYARI: JWT_SECRET tanımlanmadı. Geliştirme ortamı için geçici anahtar kullanılıyor.');
-  return 'devamsizlik-takip-dev-secret-key-change-in-production';
+  console.warn('⚠️ UYARI: JWT_SECRET tanımlanmadı. Otomatik geçici anahtar kullanılıyor. (Variables sekmesine JWT_SECRET ekleyebilirsiniz).');
+  return 'devamsizlik-default-jwt-secret-key-production-change-in-variables';
 }
 
 const JWT_SECRET = getJwtSecret();
