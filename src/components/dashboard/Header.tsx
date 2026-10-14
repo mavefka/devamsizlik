@@ -100,11 +100,21 @@ export function Header({
               className="w-9 h-9 rounded-xl overflow-hidden border border-zinc-200/80 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:ring-2 hover:ring-zinc-400 transition-all shrink-0"
             >
               {user.avatarUrl ? (
-                <img
-                  src={user.avatarUrl}
-                  alt={user.displayName || user.username}
-                  className="w-full h-full object-cover"
-                />
+                <>
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.displayName || user.username}
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const fallback = e.currentTarget.parentElement?.querySelector('.avatar-header-fallback');
+                      if (fallback) (fallback as HTMLElement).style.display = 'inline';
+                    }}
+                    className="w-full h-full object-cover"
+                  />
+                  <span className="avatar-header-fallback" style={{ display: 'none' }}>
+                    {(user.displayName || user.username)[0].toUpperCase()}
+                  </span>
+                </>
               ) : (
                 <span>{(user.displayName || user.username)[0].toUpperCase()}</span>
               )}

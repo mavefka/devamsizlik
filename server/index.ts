@@ -26,20 +26,34 @@ app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
 
-// Static uploads (avatars) with nosniff header
-const uploadsPath = path.join(process.cwd(), 'uploads');
-if (!fs.existsSync(uploadsPath)) {
-  fs.mkdirSync(uploadsPath, { recursive: true });
+// Static uploads (avatars) stored in data/uploads so a single volume mount persists both DB and avatars
+const dataUploadsPath = path.join(process.cwd(), 'data', 'uploads');
+if (!fs.existsSync(dataUploadsPath)) {
+  fs.mkdirSync(dataUploadsPath, { recursive: true });
 }
 app.use(
   '/uploads',
-  express.static(uploadsPath, {
+  express.static(dataUploadsPath, {
     dotfiles: 'allow',
     setHeaders: (res) => {
       res.setHeader('X-Content-Type-Options', 'nosniff');
     },
   })
 );
+
+// Fallback to legacy uploads/ directory if it exists
+const legacyUploadsPath = path.join(process.cwd(), 'uploads');
+if (fs.existsSync(legacyUploadsPath)) {
+  app.use(
+    '/uploads',
+    express.static(legacyUploadsPath, {
+      dotfiles: 'allow',
+      setHeaders: (res) => {
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+      },
+    })
+  );
+}
 
 // API routes
 app.use('/api/auth', authRoutes);

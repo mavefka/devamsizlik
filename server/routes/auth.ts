@@ -19,8 +19,8 @@ const authLimiter = rateLimit({
   message: { error: 'Çok fazla istek yapıldı. Lütfen 15 dakika sonra tekrar deneyin.' },
 });
 
-// Ensure upload directory exists
-const uploadDir = path.join(process.cwd(), 'uploads', 'avatars');
+// Ensure upload directory exists inside data/ so a single volume mount persists both DB and uploads
+const uploadDir = path.join(process.cwd(), 'data', 'uploads', 'avatars');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -199,12 +199,18 @@ router.post('/avatar', authMiddleware, upload.single('avatar'), (req: Authentica
     // Delete user's previous avatar if it exists
     const currentUser = db.prepare('SELECT avatar_url FROM users WHERE id = ?').get(req.user!.id) as any;
     if (currentUser?.avatar_url && typeof currentUser.avatar_url === 'string' && currentUser.avatar_url.startsWith('/uploads/avatars/')) {
-      const oldAvatarPath = path.join(process.cwd(), currentUser.avatar_url.replace(/^\//, ''));
-      if (fs.existsSync(oldAvatarPath)) {
-        try {
-          fs.unlinkSync(oldAvatarPath);
-        } catch (unlinkErr) {
-          console.error('Failed to unlink old avatar:', unlinkErr);
+      const relPath = currentUser.avatar_url.replace(/^\//, '');
+      const candidates = [
+        path.join(process.cwd(), 'data', relPath),
+        path.join(process.cwd(), relPath),
+      ];
+      for (const p of candidates) {
+        if (fs.existsSync(p)) {
+          try {
+            fs.unlinkSync(p);
+          } catch (unlinkErr) {
+            console.error('Failed to unlink old avatar:', unlinkErr);
+          }
         }
       }
     }
@@ -270,12 +276,18 @@ router.post('/delete-account', authMiddleware, async (req: AuthenticatedRequest,
 
     // If user has a local avatar, delete it
     if (user.avatar_url && typeof user.avatar_url === 'string' && user.avatar_url.startsWith('/uploads/avatars/')) {
-      const avatarPath = path.join(process.cwd(), user.avatar_url.replace(/^\//, ''));
-      if (fs.existsSync(avatarPath)) {
-        try {
-          fs.unlinkSync(avatarPath);
-        } catch (unlinkErr) {
-          console.error('Avatar file removal error:', unlinkErr);
+      const relPath = user.avatar_url.replace(/^\//, '');
+      const candidates = [
+        path.join(process.cwd(), 'data', relPath),
+        path.join(process.cwd(), relPath),
+      ];
+      for (const p of candidates) {
+        if (fs.existsSync(p)) {
+          try {
+            fs.unlinkSync(p);
+          } catch (unlinkErr) {
+            console.error('Avatar file removal error:', unlinkErr);
+          }
         }
       }
     }

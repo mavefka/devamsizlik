@@ -129,11 +129,21 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
             <div className="relative group">
               <div className="w-20 h-20 rounded-full overflow-hidden bg-zinc-200 dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-2xl font-black text-zinc-700 dark:text-zinc-200 shadow-md">
                 {user.avatarUrl ? (
-                  <img
-                    src={user.avatarUrl}
-                    alt={user.displayName || user.username}
-                    className="w-full h-full object-cover"
-                  />
+                  <>
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.displayName || user.username}
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const fallback = e.currentTarget.parentElement?.querySelector('.avatar-profile-fallback');
+                        if (fallback) (fallback as HTMLElement).style.display = 'inline';
+                      }}
+                      className="w-full h-full object-cover"
+                    />
+                    <span className="avatar-profile-fallback" style={{ display: 'none' }}>
+                      {initial}
+                    </span>
+                  </>
                 ) : (
                   <span>{initial}</span>
                 )}
